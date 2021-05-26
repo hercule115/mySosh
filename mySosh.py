@@ -28,6 +28,8 @@ except:
     print('config.py does not exist. Importing generator')
     import initConfig	# Check / Update / Create config.py module
 
+VERSION = '2.1'
+
 DATA_CACHE_FILE = '.contracts.json'
 
 # Dictionary containing the HTTP requests to send to the server
@@ -44,7 +46,7 @@ SOSH_HTTP_REQUESTS = {
         },
         "resp" : {
             "code" : 200,
-            "dumpResponse" : 'www.sosh.fr.html',
+            #"dumpResponse" : 'www.sosh.fr.html',
             "updateCookies" : False,                
         },
         "returnText" : True,
@@ -695,7 +697,14 @@ def showContractsInfo(contractsInfo, phonenum):
     if phonenum == 'all':
         contract = 'all'
     else:
-        contract = phonenum.replace(' ', '.')
+        if '.' in phonenum:
+            contract = phonenum
+        elif ' ' in phonenum:
+            contract = phonenum.replace(' ', '.')
+        else:
+            contract = '.'.join(phonenum[i:i+2] for i in range(0, len(phonenum), 2))
+
+    #contract = phonenum.replace(' ', '.')
 
     if config.DEBUG:
         myprint(1,'Looking for contract: %s' % contract)
@@ -923,7 +932,7 @@ def main():
     args = parse_argv()
 
     if args.version:
-        print('%s: version 2.0' % sys.argv[0])
+        print('%s: version %s' % sys.argv[0], VERSION)
         sys.exit(0)
 
     config.DEBUG = args.debug
