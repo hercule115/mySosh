@@ -726,12 +726,16 @@ def showContractsInfo(contractsInfo, phonenum):
             phonenum  = '.'.join(name.split(' ')[1:])
 
         reinitDate = e["pageInfo"]["reinitDate"]
-        titleOffer = e["pageInfo"]["titleOffer"]
-
+        try:
+            titleOffer = e["pageInfo"]["titleOffer"]
+            oneContract['titleOffer'] = titleOffer
+        except:
+            titleOffer = ''
+            
         oneContract['name']       = name
         oneContract['equipement'] = equipment
         oneContract['phonenum']   = phonenum
-        oneContract['titleOffer'] = titleOffer
+
         try:
             dt = datetime.strptime(reinitDate, '%Y-%m-%dT%H:%M:%S')
             dt += relativedelta(months=1) 	# Add 1 month
