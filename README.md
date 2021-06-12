@@ -19,6 +19,8 @@ Or for all your phone numbers:
 
 Verbose mode is available (use "-v")
 
+Information about extra balance can be retrieved using the "-e" flag.
+
 A local cache file is managed by the tool (use "-c") which could be used to get 'locally available' data w/o connecting to the server.
 Warning: Local information may be outdated.
 
