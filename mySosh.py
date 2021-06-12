@@ -696,15 +696,13 @@ def loadDataFromCache():
 def showContractsInfo(contractsInfo, phonenum):
     if phonenum == 'all':
         contract = 'all'
-    else:
+    else: # Normalize phone number
         if '.' in phonenum:
             contract = phonenum
         elif ' ' in phonenum:
             contract = phonenum.replace(' ', '.')
         else:
             contract = '.'.join(phonenum[i:i+2] for i in range(0, len(phonenum), 2))
-
-    #contract = phonenum.replace(' ', '.')
 
     if config.DEBUG:
         myprint(1,'Looking for contract: %s' % contract)
@@ -806,11 +804,36 @@ def showContractsInfo(contractsInfo, phonenum):
         outputDict = dict()
         if contract == 'all':
             for oneContract in allContracts.values():
+                if config.EXTRA_BALANCE:
+                    # Show information for extra balance
+                    try:
+                        extraBalance = oneContract['families']['horsForfait']
+                        extra = float(extraBalance['summary/mainText'].split(' ')[0].replace(',', '.'))
+                        unit  = extraBalance['summary/mainText'].split(' ')[1]        
+
+                        outputDict[oneContract['phonenum']] = {
+                            "extra" : extra,
+                            "unit"  : unit,
+                            "date"  : extraBalance['date']
+                        }
+                        #print(json.dumps(outputDict, indent=4, ensure_ascii=False))
+                        #print(outputDict)
+                    except:
+                        if config.DEBUG:
+                            print('No Extra Balance')
+                        outputDict[oneContract['phonenum']] = {
+                            "extra" : 0,
+                            "unit"  : "?",
+                            "date"  : "?"
+                        }
+                        #pass
+                    continue
+
                 # Show Internet Mobile information only
                 internetMobileFamily = oneContract['families']['internetMobile']
 
-                remainAsNum = internetMobileFamily['summary/mainText'].split(' ')[0]                
                 remainAsNum = float(internetMobileFamily['summary/mainText'].split(' ')[0].replace(',', '.'))
+                unit = internetMobileFamily['summary/mainText'].split(' ')[1]
                 toAsNum = int(internetMobileFamily['gaugeInfo/to'].split(' ')[0])
                 percent = internetMobileFamily['gaugeInfo/percent']
                 used = "{:.2f}".format(toAsNum - remainAsNum)
@@ -818,20 +841,48 @@ def showContractsInfo(contractsInfo, phonenum):
                 outputDict[oneContract['phonenum']] = {
                     "remain"  : remainAsNum,
                     "to"      : toAsNum,
+                    "unit"    : unit,
                     "percent" : percent,
                     "used"    : float(used),
                     "expire"  : oneContract['reinitDate']
                 }
+
+            # Print collected information
             #print(json.dumps(outputDict, indent=4, ensure_ascii=False))
             print(outputDict)
-            return
 
+        # Single contract requested
         if not contract in allContracts:
             return
         
         oneContract = allContracts[contract]
+
+        if config.EXTRA_BALANCE:
+            # Show information for extra balance
+            try:
+                extraBalance = oneContract['families']['horsForfait']
+                extra = float(extraBalance['summary/mainText'].split(' ')[0].replace(',', '.'))
+                unit  = extraBalance['summary/mainText'].split(' ')[1]        
+                outputDict = {                
+                    "extra" : extra,
+                    "unit"  : unit,
+                    "date"  : extraBalance['date']
+                }
+            except:
+                if config.DEBUG:
+                    print('No Extra Balance')
+                outputDict = {
+                    "extra" : 0,
+                    "unit"  : "?",
+                    "date"  : "?"
+                }
+                #pass
+            print(json.dumps(outputDict, ensure_ascii=False))
+            return
+
         internetMobileFamily = oneContract['families']['internetMobile']
         remainAsNum = float(internetMobileFamily['summary/mainText'].split(' ')[0].replace(',', '.'))
+        unit        = internetMobileFamily['summary/mainText'].split(' ')[1]        
         toAsNum     = int(internetMobileFamily['gaugeInfo/to'].split(' ')[0])
         percent     = internetMobileFamily['gaugeInfo/percent']
         used        = "{:.2f}".format(toAsNum - remainAsNum)
@@ -839,11 +890,13 @@ def showContractsInfo(contractsInfo, phonenum):
         outputDict = {
             "remain"  : remainAsNum,
             "to"      : toAsNum,
+            "unit"    : unit,
             "percent" : percent,
             "used"    : float(used),
             "expire"  : oneContract['reinitDate']
         }
-        print(json.dumps(outputDict))
+        print(json.dumps(outputDict, ensure_ascii=False))
+
         
 # Arguments parser
 def parse_argv():
@@ -866,9 +919,13 @@ def parse_argv():
                         dest="useCache",
                         default=False,
                         help="Use local cache if available")
+    parser.add_argument("-e", "--extrabalance",
+                        action="store_true", dest="extraBalance", default=False,
+                        help="provides information about extra balance")
     parser.add_argument("-v", "--verbose",
                         action="store_true", dest="verbose", default=False,
                         help="provides more information")
+
     parser.add_argument('-u', '--user',
                         dest='userName',
                         help="Username to use for login")
@@ -945,6 +1002,11 @@ def main():
         config.USE_CACHE = True
     else:
         config.USE_CACHE = False
+
+    if args.extraBalance:
+        config.EXTRA_BALANCE = True
+    else:
+        config.EXTRA_BALANCE = False
         
     if args.verbose:
         config.VERBOSE = True
@@ -1048,3 +1110,12 @@ if __name__ == "__main__":
             
     # Let's go
     main()
+
+########
+#        "horsForfait": {
+#            "familyCode": "horsForfait",
+#            "familyType": "extra_balance",
+#            "titleLong": "Hors forfait",
+#            "date": "06/04/21 00:00",
+#            "summary/mainText": "7,04 €"
+#        },
