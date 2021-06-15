@@ -132,7 +132,7 @@ SOSH_HTTP_REQUESTS = {
         },
         "resp" : {
             "code" : 200,
-            "dumpResponse" : 'www.sosh.fr.html',
+            #"dumpResponse" : 'www.sosh.fr.html',
             "updateCookies" : False,
         },
         "returnText" : True,
@@ -201,7 +201,7 @@ SOSH_HTTP_REQUESTS = {
         },
         "resp" : {
             "code" : 200,
-            "dumpResponse" : 'www.sosh.fr.html',
+            #"dumpResponse" : 'www.sosh.fr.html',
             "updateCookies" : False,
         },
         "returnText" : True,
