@@ -10,7 +10,7 @@ import os
 import sys
 import requests
 #import random
-#import time
+import time
 #import getpass
 import argparse
 from datetime import datetime
@@ -28,7 +28,7 @@ except:
     print('config.py does not exist. Importing generator')
     import initConfig	# Check / Update / Create config.py module
 
-VERSION = '2.1'
+VERSION = '2.3'
 
 DATA_CACHE_FILE = '.contracts.json'
 
@@ -771,10 +771,17 @@ def showContractsInfo(contractsInfo, phonenum):
                 oneFamily['summary/mainText'] = f["bundles"][0]["summary"]["mainText"]
             except:
                 pass
-                
+            try:
+                oneFamily['appels/summary/additionalCredit'] = f["bundles"][0]["summary"]["additionalCredit"]
+            except:
+                pass
+            
             # Add this family to global families dict for this contract
             families[oneFamily['familyCode']] = oneFamily
 
+            # Print this family
+            #print(json.dumps(oneFamily, indent=4, ensure_ascii=False))
+            
         # Add families dict to this contract dict
         oneContract['families'] = families
 
@@ -804,6 +811,27 @@ def showContractsInfo(contractsInfo, phonenum):
         outputDict = dict()
         if contract == 'all':
             for oneContract in allContracts.values():
+                if config.CALLS:
+                    # Show information about voice calls
+                    try:
+                        calls = oneContract['families']['appels']
+                        value = calls['appels/summary/additionalCredit']['value'] # In seconds
+                        formatted_value = time.strftime('%H:%M:%S', time.gmtime(value))
+                        unit  = calls['appels/summary/additionalCredit']['unit']
+                        outputDict[oneContract['phonenum']] = {
+                            "value" : value,
+                            "formatted_value" : formatted_value,
+                            "unit"  : unit,
+                        }
+                    except:
+                        if config.DEBUG:
+                            print('No Calls')
+                        outputDict[oneContract['phonenum']] = {
+                            "value" : 0,
+                            "formatted_value"  : "?",
+                            "unit"  : "?",
+                        }
+                    continue
                 if config.EXTRA_BALANCE:
                     # Show information for extra balance
                     try:
@@ -857,6 +885,29 @@ def showContractsInfo(contractsInfo, phonenum):
         
         oneContract = allContracts[contract]
 
+        if config.CALLS:
+            # Show information about voice calls
+            try:
+                calls = oneContract['families']['appels']
+                value = calls['appels/summary/additionalCredit']['value']
+                formatted_value = time.strftime('%H:%M:%S', time.gmtime(value))                
+                unit  = calls['appels/summary/additionalCredit']['unit']
+                outputDict = {
+                    "value" : value,
+                    "formatted_value" : formatted_value,                    
+                    "unit"  : unit,
+                }
+            except:
+                if config.DEBUG:
+                    print('No Calls')
+                    outputDict = {
+                        "value" : 0,
+                        "formatted_value"  : "?",
+                        "unit"  : "?",
+                    }
+            print(json.dumps(outputDict, ensure_ascii=False))
+            return
+
         if config.EXTRA_BALANCE:
             # Show information for extra balance
             try:
@@ -906,6 +957,9 @@ def parse_argv():
     parser.add_argument("-d", "--debug",
                         action="count", dest="debug", default=0, #action="store_true", 
                         help="print debug messages (to stdout)")
+    parser.add_argument("-v", "--verbose",
+                        action="store_true", dest="verbose", default=False,
+                        help="provides more information")
     parser.add_argument('-f', '--file',
                         dest='logFile',
                         const='',
@@ -914,17 +968,21 @@ def parse_argv():
                         nargs='?',
                         metavar='FILE',
                         help="write debug messages to FILE (default to <hostname>-debug.txt)")
-    parser.add_argument("-c", "--cache",
+    parser.add_argument("-C", "--cache",
                         action="store_true",
                         dest="useCache",
                         default=False,
                         help="Use local cache if available")
+
+    parser.add_argument("-c", "--calls",
+                        action="store_true", dest="calls", default=False,
+                        help="provides information about voice calls")
     parser.add_argument("-e", "--extrabalance",
                         action="store_true", dest="extraBalance", default=False,
                         help="provides information about extra balance")
-    parser.add_argument("-v", "--verbose",
-                        action="store_true", dest="verbose", default=False,
-                        help="provides more information")
+    parser.add_argument("-i", "--internet",
+                        action="store_true", dest="internet", default=True,
+                        help="prpvide information about Internet usage")
 
     parser.add_argument('-u', '--user',
                         dest='userName',
@@ -932,7 +990,7 @@ def parse_argv():
     parser.add_argument('-p', '--password',
                         dest='password',
                         help="Password to use for login")
-    parser.add_argument("-i", "--info",
+    parser.add_argument("-I", "--info",
                         action="store_true", dest="version", default=False,
                         help="print version and exit")
 
@@ -993,7 +1051,7 @@ def main():
     args = parse_argv()
 
     if args.version:
-        print('%s: version %s' % sys.argv[0], VERSION)
+        print('%s: version %s' % (sys.argv[0], VERSION))
         sys.exit(0)
 
     config.DEBUG = args.debug
@@ -1002,6 +1060,11 @@ def main():
         config.USE_CACHE = True
     else:
         config.USE_CACHE = False
+
+    if args.calls:
+        config.CALLS = True
+    else:
+        config.CALLS = False
 
     if args.extraBalance:
         config.EXTRA_BALANCE = True
@@ -1119,3 +1182,29 @@ if __name__ == "__main__":
 #            "date": "06/04/21 00:00",
 #            "summary/mainText": "7,04 €"
 #        },
+
+
+                        # "familyCode": "appels",
+                        # "familyType": "calls",
+                        # "title": "Appels",
+                        # "titleLong": "Appels",
+                        # "date": "",
+                        # "dateText": "",
+                        # "bundles": [
+                        #     {
+                        #         "bundleCode": "LIBI",
+                        #         "bundleType": "LIBI",
+                        #         "summary": {
+                        #             "stateText": "Illimite\u0301",
+                        #             "additionalText": "Consomme\u0301 : 3 min 37 s",
+                        #             "additionalCredit": {
+                        #                 "value": 217,
+                        #                 "unit": "TIME"
+                        #             },
+                        #             "displayAlertIcon": false,
+                        #             "displayTopup": false,
+                        #             "displayGauge": false
+                        #         },
+                        #         "userActivityAccess": false
+                        #     }
+                        # ]
