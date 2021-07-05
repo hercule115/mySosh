@@ -1,25 +1,26 @@
-#!flask/bin/python
-
+import myGlobals as mg
+from common.utils import get_linenumber
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
-from flask import Flask, jsonify, abort, make_response
-from flask_restful import Api, Resource #, reqparse, fields, marshal
+from flask import Flask
+from flask_restful import Api, Resource
 import inspect
 import json
-import logging
 from multiprocessing import Process, Value
 import os
 import sys
 import time
 
 import config
-from common.utils import myprint
-import myGlobals as mg
-import mySoshContractsInfo as msci
+from common.utils import myprint, isFileOlderThanXMinutes
+
+import mySoshContracts as msc
 
 from resources.internet import InternetAPI, InternetListAPI
 from resources.extraBalance import ExtraBalanceAPI, ExtraBalanceListAPI
 from resources.calls import CallsAPI, CallsListAPI
+
+DATACACHE_AGING_IN_MINUTES = 15
 
 apiResources = {
     "internet" : [
@@ -58,25 +59,27 @@ def foreverLoop(loop_on, dataCachePath, debug, updateDelay):
         if loop_on.value == True:
             time.sleep(updateDelay)
             myprint(0, 'Reloading cache file from server...')
-            res = msci.getContractsInfoFromSoshServer(dataCachePath)
+            res = msc.getContractsInfoFromSoshServer(dataCachePath)
             myprint(1, 'Data collected from server')            
             if res:
                 myprint(0, 'Failed to create/update local data cache')
                 continue
             # Reload local cache
-            mg.contractsInfo = msci.loadDataFromCache(dataCachePath)
+            mg.contractsInfo = msc.loadDataFromCache(dataCachePath)
             t = os.path.getmtime(dataCachePath)
             dt = datetime.fromtimestamp(t).strftime('%Y/%m/%d %H:%M:%S')
             myprint(0, 'Cache file reloaded. Last modification time: %s' % dt)
 
 
 def apiServerMain():
-    myprint(1, 'Launching Server')
+
+    dt_now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    mg.logger.info('Launching server at %s' % dt_now)
+    myprint(1, 'Launching server...')
     
     app = Flask(__name__, static_url_path="")
     api = Api(app)
 
-    # Add api resources
     for resourceName, resourceParamList in apiResources.items():
         for resource in resourceParamList:
             resApi = resource[0]
@@ -85,31 +88,31 @@ def apiServerMain():
             myprint(1, 'Adding Resource:', resourceName, resApi, resUrl, resEndpoint)
             api.add_resource(resApi, resUrl, endpoint=resEndpoint)
             
-    # api.add_resource(InternetListAPI, '/mysosh/api/v1.0/internet', endpoint='internets')
-    # api.add_resource(InternetAPI,     '/mysosh/api/v1.0/internet/<string:id>', endpoint='internet')
-
-    # api.add_resource(ExtraBalanceListAPI, '/mysosh/api/v1.0/extrabalance', endpoint='extrabalances')
-    # api.add_resource(ExtraBalanceAPI,     '/mysosh/api/v1.0/extrabalance/<string:id>', endpoint='extrabalance')
-
-    # api.add_resource(CallsListAPI, '/mysosh/api/v1.0/calls', endpoint='calls')
-    # api.add_resource(CallsAPI,     '/mysosh/api/v1.0/calls/<string:id>', endpoint='call')
-    
+    # Check if local cache file exists.
+    # In this case, check its modification time and reload it from Sosh server if too old.
+    if os.path.isfile(mg.dataCachePath):
+        if isFileOlderThanXMinutes(mg.dataCachePath, minutes=DATACACHE_AGING_IN_MINUTES):
+            t = os.path.getmtime(mg.dataCachePath)
+            dt = datetime.fromtimestamp(t).strftime('%Y/%m/%d %H:%M:%S')
+            myprint(0, 'Cache file outdated (%s). Deleting and reloading from Sosh server' % dt)
+            os.remove(mg.dataCachePath)
+            
     # Load data from local cache
-    myprint(1, 'Loading data from cache file: %s' % mg.dataCachePath)
-    mg.contractsInfo = msci.loadDataFromCache(mg.dataCachePath)
+    myprint(0, 'Loading data from cache file: %s' % mg.dataCachePath)
+    mg.contractsInfo = msc.loadDataFromCache(mg.dataCachePath)
     if mg.contractsInfo == None:
-        myprint(1, 'No local cache available, Connecting to server')
-        res = msci.getContractsInfoFromSoshServer(mg.dataCachePath)
+        myprint(0, 'No local cache available, Connecting to server')
+        res = msc.getContractsInfoFromSoshServer(mg.dataCachePath)
         if res:
             myprint(0, 'Failed to create local data cache')
             return(res)
 
         # Reload local cache
-        mg.contractsInfo = msci.loadDataFromCache(mg.dataCachePath)
+        mg.contractsInfo = msc.loadDataFromCache(mg.dataCachePath)
 
     t = os.path.getmtime(mg.dataCachePath)
     dt = datetime.fromtimestamp(t).strftime('%Y/%m/%d %H:%M:%S')
-    myprint(1, 'Cache file loaded. Last modification time: %s' % dt)
+    myprint(0, 'Cache file loaded. Last modification time: %s' % dt)
         
     recording_on = Value('b', True)
     p = Process(target=foreverLoop, args=(recording_on,
@@ -117,7 +120,7 @@ def apiServerMain():
                                           config.DEBUG,
                                           config.UPDATEDELAY))
     p.start()  
-    app.run(debug=True, use_reloader=False) ##, host="0.0.0.0", port=6420)
+    app.run(debug=True, use_reloader=False, port=5000) ##, host="0.0.0.0", port=6420)
     p.join()
 
     return(0)

@@ -7,12 +7,13 @@ import builtins as __builtin__
 from datetime import datetime
 import inspect
 import json
+import logging
 import os
 import sys
 import time
 
 import myGlobals as mg
-from common.utils import myprint, module_path
+from common.utils import myprint, module_path, get_linenumber, color
 
 import authinfo		# Encode/Decode credentials
 
@@ -22,9 +23,7 @@ except:
     print('config.py does not exist. Importing generator')
     import initConfig	# Check / Update / Create config.py module
 
-import mySoshApiServer as msas
-import mySoshContractsInfo as msci
-
+import mySoshContracts as msc
         
 # Arguments parser
 def parse_argv():
@@ -35,12 +34,12 @@ def parse_argv():
                         action="store_true",                        
                         dest="server",
                         default=False,
-                        help="run in server mode (Web Service)")
+                        help="run in server mode (as a Web Service)")
     parser.add_argument("-d", "--debug",
                         action="count",
                         dest="debug",
                         default=0,
-                        help="print debug messages (to stdout/stderr)")
+                        help="print debug messages (to stdout)")
     parser.add_argument("-v", "--verbose",
                         action="store_true", dest="verbose", default=False,
                         help="provides more information")
@@ -77,15 +76,13 @@ def parse_argv():
                         action="store_true", dest="internet", default=True,
                         help="provide information about Internet usage")
 
-    # Credentials arguments
+    # Credentials arguments    
     parser.add_argument('-u', '--user',
                         dest='userName',
                         help="Username to use for login")
     parser.add_argument('-p', '--password',
                         dest='password',
                         help="Password to use for login")
-
-    # Misc. arguments
     parser.add_argument("-I", "--info",
                         action="store_true", dest="version", default=False,
                         help="print version and exit")
@@ -151,9 +148,23 @@ def main():
         print('%s: version %s' % (sys.argv[0], mg.VERSION))
         sys.exit(0)
 
-    config.DEBUG = args.debug
+    config.SERVER    = args.server
+    config.VERBOSE   = args.verbose
+    config.USE_CACHE = args.useCache
+    config.INTERNET  = args.internet
+    config.CALLS     = args.calls
+    config.EXTRA_BALANCE = args.extraBalance
+    config.DEBUG     = args.debug
+    
     if config.DEBUG:
         myprint(1, 'Running in DEBUG mode (level=%d)' % config.DEBUG)
+        myprint(1,
+                'config.SERVER =', config.SERVER,
+                'config.VERBOSE =', config.VERBOSE,
+                'config.USE_CACHE =', config.USE_CACHE,
+                'config.INTERNET =', config.INTERNET,
+                'config.CALLS =', config.CALLS,
+                'config.EXTRA_BALANCE =', config.EXTRA_BALANCE)
         
     if args.logFile == None:
         #print('Using stdout')
@@ -167,33 +178,21 @@ def main():
         print('Using log file: %s' % mg.configFilePath)
         try:
             sys.stdout = open(mg.configFilePath, "w")
-            sys.stderr = sys.stdout
+            sys.stderr = sys.stdout            
         except:
             print('Cannot create log file')
-    
+
     if args.server:
         if args.updateDelay:
             config.UPDATEDELAY = args.updateDelay
         else:
             config.UPDATEDELAY = 300 # seconds
 
-    config.SERVER    = args.server
-    config.VERBOSE   = args.verbose
-    config.USE_CACHE = args.useCache
-    config.INTERNET  = args.internet
-    config.CALLS     = args.calls
-    config.EXTRA_BALANCE = args.extraBalance
-
-    if config.DEBUG:
-        myprint(1,
-                'config.SERVER =', config.SERVER,
-                'config.VERBOSE =', config.VERBOSE,
-                'config.USE_CACHE =', config.USE_CACHE,
-                'config.INTERNET =', config.INTERNET,
-                'config.CALLS =', config.CALLS,
-                'config.EXTRA_BALANCE =', config.EXTRA_BALANCE)
-                
     if config.SERVER:
+        import mySoshApiServer as msas
+        if config.DEBUG:
+            mg.logger.info('mySoshApiServer imported (line #%d)' % get_linenumber())
+
         myprint(0, 'Running in Server mode. Update interval: %d seconds' % config.UPDATEDELAY)
         res = msas.apiServerMain()
         myprint(1, 'mySosh API Server exited with code %d' % res)
@@ -211,17 +210,20 @@ def main():
 
     if config.USE_CACHE:
         # Load data from local cache
-        mg.contractsInfo = msci.loadDataFromCache(mg.dataCachePath)
+        mg.contractsInfo = msc.loadDataFromCache(mg.dataCachePath)
         if mg.contractsInfo:
-            info = msci.getContractsInfo(mg.contractsInfo, contract)
+            info = msc.getContractsInfo(mg.contractsInfo, contract)
             if config.VERBOSE:
-                print(json.dumps(info, indent=4, ensure_ascii=False))
+                for k,v in info.items():
+                    oneContract = v
+                    print('%s%s%s' % (color.BOLD, k, color.END))
+                    print(json.dumps(oneContract, indent=4, ensure_ascii=False))
             else:
-                print(info)
+                print(json.dumps(info, ensure_ascii=False))
             sys.exit(0)
 
     # Read data from server
-    res = msci.getContractsInfoFromSoshServer(mg.dataCachePath)
+    res = msc.getContractsInfoFromSoshServer(mg.dataCachePath)    
     if res:
         myprint(0, 'Failed to create/update local data cache')
         sys.exit(res)
@@ -229,15 +231,15 @@ def main():
     t = os.path.getmtime(mg.dataCachePath)
     dt = datetime.fromtimestamp(t).strftime('%Y/%m/%d %H:%M:%S')
     myprint(1, 'Cache file updated. Last modification time: %s' % dt)
-        
-    # Display information
-    mg.contractsInfo = msci.loadDataFromCache(mg.dataCachePath)
-    info = msci.getContractsInfo(mg.contractsInfo, contract)
 
+    # Display information
+    mg.contractsInfo = msc.loadDataFromCache(mg.dataCachePath)
+    info = msc.getContractsInfo(mg.contractsInfo, contract)
+    
     if config.VERBOSE:
         print(json.dumps(info, indent=4, ensure_ascii=False))
     else:
-        print(info)
+        print(json.dumps(info, ensure_ascii=False))
         
     if args.logFile and args.logFile != '':
         sys.stdout.close()
@@ -245,8 +247,12 @@ def main():
         
 # Entry point    
 if __name__ == "__main__":
-    #logging.basicConfig(level=logging.INFO)
-    #mg.logger = logging.getLogger(__name__)
+
+    dt_now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+
+    logging.basicConfig(filename='mySosh-ws.log', level=logging.INFO)
+    mg.logger = logging.getLogger(__name__)
+    mg.logger.info('Running at %s' % dt_now)
 
     # Absolute pathname of directory containing this module
     mg.moduleDirPath = os.path.dirname(module_path(main))

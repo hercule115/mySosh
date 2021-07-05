@@ -3,7 +3,7 @@ VERSION = '3.0'
 DATA_CACHE_FILE = '.contracts.json'
 
 # Global variables
-#logger = None
+logger = None
 moduleDirPath = ''
 dataCachePath = ''
 contractsInfo = None

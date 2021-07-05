@@ -2,6 +2,7 @@ import builtins as __builtin__
 import inspect
 import os
 import sys
+import time
 
 import config
 
@@ -65,3 +66,17 @@ def humanBytes(size):
         size = float(size / power)
         n += 1
     return '%s %s' % (('%.2f' % size).rstrip('0').rstrip('.'), power_labels[n])
+
+####
+def isFileOlderThanXMinutes(file, minutes=1): 
+    fileTime = os.path.getmtime(file) 
+    # Check against minutes parameter
+    #return ((time.time() - fileTime) / 3600 > 24*days)
+    return ((time.time() - fileTime) > (minutes *  60))
+
+####
+from inspect import currentframe
+
+def get_linenumber():
+    cf = currentframe()
+    return cf.f_back.f_lineno

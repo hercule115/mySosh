@@ -1,21 +1,35 @@
+from flask import jsonify, make_response # redirect, request, url_for, current_app, flash, 
 from flask_restful import Resource
 from flask_httpauth import HTTPBasicAuth
 import json
 
 import config
-import mySoshContractsInfo as msci
+import authinfo
+import mySoshContracts as msc
 import myGlobals as mg
-from common.utils import myprint
+from common.utils import myprint, masked
 
 auth = HTTPBasicAuth()
 
 @auth.get_password
 def get_password(username):
-    myprint(2, username)
-    if username == 'didier':
-        return 'foobar'
-    return None
+    myprint(1, 'Checking username %s' % username)
+    
+    u, p = authinfo.decodeKey(config.SOSH_AUTH.encode('utf-8'))
 
+    myprint(1, '%-15s: %s' % ('SOSH Username', u))
+    myprint(1, '%-15s: %s' % ('SOSH Password', masked(p, 3)))
+
+    if u == '':
+        myprint(0, 'Unable to decode config.SOSH_AUTH')
+        return None
+
+    if username != u:
+        myprint(0, 'Invalid username %s' % username)
+        return None
+
+    myprint(1, 'Username is valid')
+    return p
 
 @auth.error_handler
 def unauthorized():
@@ -32,7 +46,7 @@ class ExtraBalanceListAPI(Resource):
         config.CALLS = False
 
     def get(self):
-        extra = msci.getContractsInfo(mg.contractsInfo, 'all')
+        extra = msc.getContractsInfo(mg.contractsInfo, 'all')
         myprint(1, json.dumps(extra, ensure_ascii=False))        
         return (extra)
 
@@ -48,7 +62,7 @@ class ExtraBalanceAPI(Resource):
         config.CALLS = False
     
     def get(self, id):
-        extra = msci.getContractsInfo(mg.contractsInfo, id)
+        extra = msc.getContractsInfo(mg.contractsInfo, id)
         myprint(1, json.dumps(extra, ensure_ascii=False))
         return (extra)
 

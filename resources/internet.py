@@ -1,21 +1,35 @@
-from flask_restful import Resource
+from flask import jsonify, make_response # redirect, request, url_for, current_app, flash, 
+from flask_restful import Api, Resource
 from flask_httpauth import HTTPBasicAuth
 import json
 
 import config
-import mySoshContractsInfo as msci
+import authinfo
+import mySoshContracts as msc
 import myGlobals as mg
-from common.utils import myprint
+from common.utils import myprint, masked
 
 auth = HTTPBasicAuth()
 
 @auth.get_password
 def get_password(username):
-    myprint(2, username)
-    if username == 'didier':
-        return 'foobar'
-    return None
+    myprint(1, 'Checking username %s' % username)
+    
+    u, p = authinfo.decodeKey(config.SOSH_AUTH.encode('utf-8'))
 
+    myprint(1, '%-15s: %s' % ('SOSH Username', u))
+    myprint(1, '%-15s: %s' % ('SOSH Password', masked(p, 3)))
+
+    if u == '':
+        myprint(0, 'Unable to decode config.SOSH_AUTH')
+        return None
+
+    if username != u:
+        myprint(0, 'Invalid username %s' % username)
+        return None
+
+    myprint(1, 'Username is valid')
+    return p
 
 @auth.error_handler
 def unauthorized():
@@ -23,23 +37,30 @@ def unauthorized():
     # auth dialog
     return make_response(jsonify({'message': 'Unauthorized access'}), 403)
 
+# @auth.get_password
+# def get_password(username):
+#     myprint(2, username)
+#     if username == 'didier':
+#         return 'foobar'
+#     return None
+
+
+# @auth.error_handler
+# def unauthorized():
+#     # return 403 instead of 401 to prevent browsers from displaying the default
+#     # auth dialog
+#     return make_response(jsonify({'message': 'Unauthorized access'}), 403)
+
 class InternetListAPI(Resource):
     decorators = [auth.login_required]
 
     def __init__(self):
-    #     self.reqparse = reqparse.RequestParser()
-    #     self.reqparse.add_argument('title', type=str, required=True,
-    #                                help='No task title provided',
-    #                                location='json')
-    #     self.reqparse.add_argument('description', type=str, default="",
-    #                                location='json')
-    #     super(InternetListAPI, self).__init__()
         config.INTERNET = True
         config.EXTRA_BALANCE = False
         config.CALLS = False
 
     def get(self):
-        internet = msci.getContractsInfo(mg.contractsInfo, 'all')
+        internet = msc.getContractsInfo(mg.contractsInfo, 'all')
         myprint(1, json.dumps(internet, ensure_ascii=False))        
         return (internet)
 
@@ -50,17 +71,12 @@ class InternetAPI(Resource):
     decorators = [auth.login_required]
 
     def __init__(self):
-    #     self.reqparse = reqparse.RequestParser()
-    #     self.reqparse.add_argument('title', type=str, location='json')
-    #     self.reqparse.add_argument('description', type=str, location='json')
-    #     self.reqparse.add_argument('done', type=bool, location='json')
-    #     super(TaskAPI, self).__init__()
         config.INTERNET = True
         config.EXTRA_BALANCE = False
         config.CALLS = False
 
     def get(self, id):
-        internet = msci.getContractsInfo(mg.contractsInfo, id)
+        internet = msc.getContractsInfo(mg.contractsInfo, id)
         myprint(1, json.dumps(internet, ensure_ascii=False))
         return (internet)
 
