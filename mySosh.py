@@ -252,7 +252,7 @@ if __name__ == "__main__":
 
     logging.basicConfig(filename='mySosh-ws.log', level=logging.INFO)
     mg.logger = logging.getLogger(__name__)
-    mg.logger.info('Running at %s' % dt_now)
+    mg.logger.info('Running at %s. Args: %s' % (dt_now, ' '.join(sys.argv)))
 
     # Absolute pathname of directory containing this module
     mg.moduleDirPath = os.path.dirname(module_path(main))
