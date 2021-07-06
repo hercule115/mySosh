@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 import json
 import requests
+import sys
 import unicodedata
 
 from common.utils import myprint, dumpToFile

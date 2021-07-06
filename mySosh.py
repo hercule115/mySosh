@@ -121,24 +121,6 @@ def importModule(moduleDirPath, moduleName, name):
     globals()[name] = mod
 
 
-#
-# Create configuration file config.py
-#
-def initConfiguration():
-    import initConfig	# Check / Update / Create config.py module
-    
-    # Create config.py with Mandatory/Optional fields
-    print('Creating config.py with Mandatory/Optional fields')
-    
-    mandatoryFields = [('a',['SOSH_AUTH', ('s','SOSH_USERNAME'), ('p','SOSH_PASSWORD')])]
-    optionalFields  = [('d','DEBUG', 0),
-                       ('b','VERBOSE', 'False'),
-                       ('s','LOGFILE')]
-                       
-    initConfig.initConfig(moduleDirPath, mandatoryFields, optionalFields, True)
-    return 0
-
-
 ####
 def main():
 

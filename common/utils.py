@@ -4,7 +4,30 @@ import os
 import sys
 import time
 
-import config
+import myGlobals as mg
+
+try:
+    import config	# Shared global config variables (DEBUG,...)
+except:
+    print('The file config.py does not exist. Initializing configuration')
+    import initConfig	# Check / Update / Create config.py module
+
+# Check if config module is already imported. If not, build it
+try:
+    x = globals()['config']
+    haveConfig = True
+except:
+    haveConfig = False
+
+if not haveConfig:
+    initConfig.initConfiguration()
+
+# Import generated module
+try:
+    import config
+except:
+    print('config.py initialization has failed. Exiting')
+    sys.exit(1)
 
 ####
 class color:
