@@ -33,8 +33,6 @@ import myGlobals as mg
 from common.utils import myprint, module_path, get_linenumber, color
 
 import authinfo		# Encode/Decode credentials
-
-
 import mySoshContracts as msc
         
 # Arguments parser
@@ -133,27 +131,6 @@ def importModule(moduleDirPath, moduleName, name):
     globals()[name] = mod
 
 
-<<<<<<< HEAD
-#
-# Create configuration file config.py
-#
-# def initConfiguration():
-#     import initConfig	# Check / Update / Create config.py module
-    
-#     # Create config.py with Mandatory/Optional fields
-#     print('Creating config.py with Mandatory/Optional fields')
-    
-#     mandatoryFields = [('a',['SOSH_AUTH', ('s','SOSH_USERNAME'), ('p','SOSH_PASSWORD')])]
-#     optionalFields  = [('d','DEBUG', 0),
-#                        ('b','VERBOSE', 'False'),
-#                        ('s','LOGFILE')]
-                       
-#     initConfig.initConfig(moduleDirPath, mandatoryFields, optionalFields, True)
-#     return 0
-
-
-=======
->>>>>>> c79ce3be406e4c93b0edc34390cc3026d2ce5394
 ####
 def main():
 
