@@ -11,7 +11,9 @@ import getpass
 import base64
 import authinfo
 
-def checkModule(fields):
+import myGlobals as mg
+
+def _checkModule(fields):
     for f in fields:
         ftype = f[0]
         if ftype == 'a': # Auth parameter
@@ -90,9 +92,13 @@ def getParm(field, opt): # ('b','DEBUG', 'True')
             
     elif ftype == 'd':
         v = input('%s (decimal): ' % fname)
+        while not v.isnumeric():
+            v = input('%s (decimal): ' % fname)
         if not opt:
             while not v:
                 v = input('%s: ' % fname)
+                while not v.isnumeric():
+                    v = input('%s (decimal): ' % fname)
         return v
     
 def createConfig(mandatoryFields, optionalFields):
@@ -122,7 +128,7 @@ def createConfig(mandatoryFields, optionalFields):
         print(msg)
         sys.exit(1)
 
-def initConfig(moduleDirPath, mandatoryFields, optionalFields, force):
+def initConfig(mandatoryFields, optionalFields, force):
     if force:
         createConfig(mandatoryFields, optionalFields)
         return
@@ -137,16 +143,27 @@ def initConfig(moduleDirPath, mandatoryFields, optionalFields, force):
         #return
         if config.VERBOSE:
             print('Checking existing config.py')
-            ret = checkModule(fields=mandatoryFields)
+            ret = _checkModule(fields=mandatoryFields)
             if ret < 0:
                 createConfig(mandatoryFields, optionalFields)
+
+#
+# Create configuration file config.py
+#
+def initConfiguration():
+    # Create config.py with Mandatory/Optional fields
+    print('Creating config.py with Mandatory/Optional fields')
+    
+    initConfig(mg.mandatoryFields, mg.optionalFields, True)
+    return 0
+
 
 # Entry point    
 if __name__ == "__main__":
     mandatoryFields = [('a',['SOSH_AUTH', ('s','SOSH_USERNAME'), ('p','SOSH_PASSWORD')])]
 
     optionalFields  = [('b','VERBOSE', 'True'),
-                       ('b','DEBUG', 'False'),
+                       ('d','DEBUG', 0),
                        ('s','LOGFILE')]
     
-    initConfig('.', mandatoryFields, optionalFields, True)
+    initConfig(mandatoryFields, optionalFields, True)

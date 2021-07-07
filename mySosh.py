@@ -2,6 +2,23 @@
 
 # Tool to get contracts information from sosh.fr
 
+# Import or build our configuration. Must be FIRST
+try:
+    import config	# Shared global config variables (DEBUG,...)
+except:
+    print('config.py does not exist. Generating...')
+    import initConfig	# Check / Update / Create config.py module
+    initConfig.initConfiguration()
+else:
+    print('config.py imported')
+    
+# Import generated module
+try:
+    import config
+except:
+    print('config.py initialization has failed. Exiting')
+    sys.exit(1)
+    
 import argparse
 import builtins as __builtin__
 from datetime import datetime
@@ -17,11 +34,6 @@ from common.utils import myprint, module_path, get_linenumber, color
 
 import authinfo		# Encode/Decode credentials
 
-try:
-    import config	# Shared global config variables (DEBUG,...)
-except:
-    print('config.py does not exist. Importing generator')
-    import initConfig	# Check / Update / Create config.py module
 
 import mySoshContracts as msc
         
@@ -121,6 +133,27 @@ def importModule(moduleDirPath, moduleName, name):
     globals()[name] = mod
 
 
+<<<<<<< HEAD
+#
+# Create configuration file config.py
+#
+# def initConfiguration():
+#     import initConfig	# Check / Update / Create config.py module
+    
+#     # Create config.py with Mandatory/Optional fields
+#     print('Creating config.py with Mandatory/Optional fields')
+    
+#     mandatoryFields = [('a',['SOSH_AUTH', ('s','SOSH_USERNAME'), ('p','SOSH_PASSWORD')])]
+#     optionalFields  = [('d','DEBUG', 0),
+#                        ('b','VERBOSE', 'False'),
+#                        ('s','LOGFILE')]
+                       
+#     initConfig.initConfig(moduleDirPath, mandatoryFields, optionalFields, True)
+#     return 0
+
+
+=======
+>>>>>>> c79ce3be406e4c93b0edc34390cc3026d2ce5394
 ####
 def main():
 
@@ -243,21 +276,21 @@ if __name__ == "__main__":
     mg.dataCachePath = os.path.join(mg.moduleDirPath, mg.DATA_CACHE_FILE)
     
     # Check if config module is already imported. If not, build it
-    try:
-        x = globals()['config']
-        haveConfig = True
-    except:
-        haveConfig = False
+    # try:
+    #     x = globals()['config']
+    #     haveConfig = True
+    # except:
+    #     haveConfig = False
 
-    if not haveConfig:
-        initConfiguration()
+    # if not haveConfig:
+    #     initConfiguration()
 
-    # Import generated module
-    try:
-        import config
-    except:
-        print('config.py initialization has failed. Exiting')
-        sys.exit(1)
+    # # Import generated module
+    # try:
+    #     import config
+    # except:
+    #     print('config.py initialization has failed. Exiting')
+    #     sys.exit(1)
             
     # Let's go
     main()

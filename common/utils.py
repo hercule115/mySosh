@@ -1,33 +1,35 @@
 import builtins as __builtin__
+#from inspect import currentframe
 import inspect
 import os
 import sys
 import time
 
 import myGlobals as mg
+import config
+# try:
+#     import config	# Shared global config variables (DEBUG,...)
+# except:
+#     print('The file config.py does not exist. Initializing configuration')
+#     import initConfig	# Check / Update / Create config.py module
 
-try:
-    import config	# Shared global config variables (DEBUG,...)
-except:
-    print('The file config.py does not exist. Initializing configuration')
-    import initConfig	# Check / Update / Create config.py module
+# # Check if config module is already imported. If not, build it
+# try:
+#     x = globals()['config']
+#     haveConfig = True
+# except:
+#     haveConfig = False
 
-# Check if config module is already imported. If not, build it
-try:
-    x = globals()['config']
-    haveConfig = True
-except:
-    haveConfig = False
+# if not haveConfig:
+#     initConfig.initConfiguration()
 
-if not haveConfig:
-    initConfig.initConfiguration()
+# # Import generated module
+# try:
+#     import config
+# except:
+#     print('config.py initialization has failed. Exiting')
+#     sys.exit(1)
 
-# Import generated module
-try:
-    import config
-except:
-    print('config.py initialization has failed. Exiting')
-    sys.exit(1)
 
 ####
 class color:
@@ -98,8 +100,6 @@ def isFileOlderThanXMinutes(file, minutes=1):
     return ((time.time() - fileTime) > (minutes *  60))
 
 ####
-from inspect import currentframe
-
 def get_linenumber():
     cf = currentframe()
     return cf.f_back.f_lineno
