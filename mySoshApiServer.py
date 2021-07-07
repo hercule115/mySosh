@@ -20,7 +20,7 @@ from resources.internet import InternetAPI, InternetListAPI
 from resources.extraBalance import ExtraBalanceAPI, ExtraBalanceListAPI
 from resources.calls import CallsAPI, CallsListAPI
 
-DATACACHE_AGING_IN_MINUTES = 15
+DATACACHE_AGING_IN_MINUTES = 20
 
 apiResources = {
     "internet" : [

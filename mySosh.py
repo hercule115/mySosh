@@ -6,11 +6,9 @@
 try:
     import config	# Shared global config variables (DEBUG,...)
 except:
-    print('config.py does not exist. Generating...')
+    #print('config.py does not exist. Generating...')
     import initConfig	# Check / Update / Create config.py module
     initConfig.initConfiguration()
-else:
-    print('config.py imported')
     
 # Import generated module
 try:
