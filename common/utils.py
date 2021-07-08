@@ -77,5 +77,5 @@ def isFileOlderThanXMinutes(file, minutes=1):
 
 ####
 def get_linenumber():
-    cf = currentframe()
+    cf = inspect.currentframe()
     return cf.f_back.f_lineno

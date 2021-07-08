@@ -65,10 +65,11 @@ def foreverLoop(loop_on, dataCachePath, debug, updateDelay):
                 myprint(0, 'Failed to create/update local data cache')
                 continue
             # Reload local cache
+            mg.contractsInfo = ''
             mg.contractsInfo = msc.loadDataFromCache(dataCachePath)
             t = os.path.getmtime(dataCachePath)
             dt = datetime.fromtimestamp(t).strftime('%Y/%m/%d %H:%M:%S')
-            myprint(0, 'Cache file reloaded. Last modification time: %s' % dt)
+            myprint(0, 'Cache file reloaded (len=%d). Last modification time: %s' % (len(mg.contractsInfo), dt))
 
 
 def apiServerMain():
