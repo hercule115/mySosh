@@ -250,7 +250,7 @@ if __name__ == "__main__":
     username, password = authinfo.decodeKey(config.SOSH_AUTH.encode('utf-8'))
     
     # Absolute pathname of data cache file
-    mg.dataCachePath = os.path.join(mg.moduleDirPath, '%s%s' % (username, mg.DATA_CACHE_FILE))
+    mg.dataCachePath = os.path.join(mg.moduleDirPath, '.%s%s' % (username, mg.DATA_CACHE_FILE))
     
     # Check if config module is already imported. If not, build it
     # try:

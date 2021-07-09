@@ -303,13 +303,15 @@ def getContractsInfoFromSoshServer(dataCachePath):
         sosh = mySoshClient.Sosh(config.SOSH_USERNAME, config.SOSH_PASSWORD, session)
 
         # Read current contracts information
-        mg.contractsInfo = sosh.getContractsInformation()
+        info = sosh.getContractsInformation()
 
         # Work done. Logout from server
         sosh.logout()
 
+    myprint(1, type(info), len(info))
+    
     # Update data cache
-    res = dumpToFile(dataCachePath, mg.contractsInfo)
+    res = dumpToFile(dataCachePath, info)
     if res:
         myprint(1, 'Failed to update local data cache')
         return (res)
