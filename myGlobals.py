@@ -7,6 +7,7 @@ logger = None
 moduleDirPath = ''
 dataCachePath = ''
 contractsInfo = None
+prevModTime = 0
 
 # Config parameters
 mandatoryFields = [('a',['SOSH_AUTH', ('s','SOSH_USERNAME'), ('p','SOSH_PASSWORD')])]

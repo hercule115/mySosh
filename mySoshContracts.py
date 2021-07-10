@@ -1,6 +1,7 @@
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import json
+import os
 import requests
 import time
 
@@ -24,6 +25,19 @@ def loadDataFromCache(dataCachePath):
 
 ####
 def getContractsInfo(contractsInfo, phonenum):
+    # Check if cache file has been updated by server thread
+    currModTime = os.path.getmtime(mg.dataCachePath)
+    dt = datetime.fromtimestamp(currModTime).strftime('%Y/%m/%d %H:%M:%S')
+    myprint(1, 'Cache file last modification time: %s (%d)' % (dt,currModTime))
+
+    if currModTime > mg.prevModTime:
+        myprint(1, 'Need to reload cache data from cache file')
+        # Reload local cache
+        contractsInfo = loadDataFromCache(mg.dataCachePath)
+        mg.prevModTime = currModTime
+    else:
+        myprint(1, 'Data cache is up to date')
+    
     if phonenum == 'all':
         contract = 'all'
     else: # Normalize phone number
@@ -308,8 +322,6 @@ def getContractsInfoFromSoshServer(dataCachePath):
         # Work done. Logout from server
         sosh.logout()
 
-    myprint(1, type(info), len(info))
-    
     # Update data cache
     res = dumpToFile(dataCachePath, info)
     if res:

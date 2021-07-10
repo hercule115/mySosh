@@ -52,7 +52,7 @@ def foreverLoop(loop_on, dataCachePath, debug, updateDelay):
         if level <= config.DEBUG:
             __builtin__.print('%s%s()%s:' % (color.BOLD, inspect.stack()[1][3], color.END), *args, **kwargs)
 
-    myprint(1,'Started. Updating cache file every %d seconds.' % updateDelay)
+    myprint(1,'Started. Updating cache file every %d seconds (%s).' % (updateDelay, time.strftime('%H:%M:%S', time.gmtime(updateDelay))))
     myprint(1,'Cache file: %s' % dataCachePath)
     
     while True:
@@ -60,18 +60,20 @@ def foreverLoop(loop_on, dataCachePath, debug, updateDelay):
             time.sleep(updateDelay)
             myprint(0, 'Reloading cache file from server...')
             res = msc.getContractsInfoFromSoshServer(dataCachePath)
-            myprint(1, 'Data collected from server')            
             if res:
                 myprint(0, 'Failed to create/update local data cache')
-                continue
+                #continue
+            dt_now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            myprint(0, 'Data collected from server at %s' % (dt_now))            
+
             # Reload local cache
-            myprint(0,'0 mg.contractsInfo',type(mg.contractsInfo),len(mg.contractsInfo))
-            mg.contractsInfo = ''
-            mg.contractsInfo = msc.loadDataFromCache(dataCachePath)
-            myprint(0,'2 mg.contractsInfo',type(mg.contractsInfo),len(mg.contractsInfo))
-            t = os.path.getmtime(dataCachePath)
-            dt = datetime.fromtimestamp(t).strftime('%Y/%m/%d %H:%M:%S')
-            myprint(0, 'Cache file reloaded (len=%d). Last modification time: %s' % (len(str(mg.contractsInfo)), dt))
+            #myprint(0,'0 mg.contractsInfo',type(mg.contractsInfo),len(mg.contractsInfo))
+            #mg.contractsInfo = ''
+            #mg.contractsInfo = msc.loadDataFromCache(dataCachePath)
+            #myprint(0,'2 mg.contractsInfo',type(mg.contractsInfo),len(mg.contractsInfo))
+            #t = os.path.getmtime(dataCachePath)
+            #dt = datetime.fromtimestamp(t).strftime('%Y/%m/%d %H:%M:%S')
+            #myprint(0, 'Cache file reloaded (len=%d). Last modification time: %s' % (len(str(mg.contractsInfo)), dt))
 
 
 def apiServerMain():
@@ -103,7 +105,7 @@ def apiServerMain():
     # Load data from local cache
     myprint(0, 'Loading data from cache file: %s' % mg.dataCachePath)
     mg.contractsInfo = msc.loadDataFromCache(mg.dataCachePath)
-    myprint(0,'1 mg.contractsInfo',type(mg.contractsInfo),len(mg.contractsInfo))
+    #myprint(0,'1 mg.contractsInfo',type(mg.contractsInfo),len(mg.contractsInfo))
     if mg.contractsInfo == None:
         myprint(0, 'No local cache available, Connecting to server')
         res = msc.getContractsInfoFromSoshServer(mg.dataCachePath)
@@ -116,8 +118,10 @@ def apiServerMain():
 
     t = os.path.getmtime(mg.dataCachePath)
     dt = datetime.fromtimestamp(t).strftime('%Y/%m/%d %H:%M:%S')
-    myprint(0, 'Cache file loaded (len=%d). Last modification time: %s' % (len(str(mg.contractsInfo)), dt))
-        
+    myprint(0, 'Cache file loaded (len=%d). Last modification time: %s (%d)' % (len(str(mg.contractsInfo)), dt, t))
+
+    mg.prevModTime = t
+    
     recording_on = Value('b', True)
     p = Process(target=foreverLoop, args=(recording_on,
                                           mg.dataCachePath,

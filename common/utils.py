@@ -47,8 +47,7 @@ def masked(text, l):
         
 ####
 def dumpToFile(fname, plainText):
-    myprint(1,'Creating/Updating %s' % fname)
-    myprint(1,'Text length: %d' % len(plainText))
+    myprint(1,'Creating/Updating %s. Text length=%d' % (fname,len(plainText)))
         
     try:
         out = open(fname, 'w')

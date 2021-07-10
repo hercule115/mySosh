@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 import json
+import os
 import requests
 import sys
 import unicodedata
@@ -479,7 +480,7 @@ class Sosh:
         # Optional parameter "dumpResponse"
         try:
             dumpResponse = rqst["resp"]["dumpResponse"]
-            dumpToFile(os.path.join(moduleDirPath, dumpResponse), r.text)
+            dumpToFile(os.path.join(mg.moduleDirPath, dumpResponse), r.text)
         except:
             #print('No "dumpResponse" field detected')
             pass

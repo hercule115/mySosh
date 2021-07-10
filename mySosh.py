@@ -183,7 +183,7 @@ def main():
         if config.DEBUG:
             mg.logger.info('mySoshApiServer imported (line #%d)' % get_linenumber())
 
-        myprint(0, 'Running in Server mode. Update interval: %d seconds' % config.UPDATEDELAY)
+        myprint(0, 'Running in Server mode. Update interval: %d seconds (%s)' % (config.UPDATEDELAY, time.strftime('%H:%M:%S', time.gmtime(config.UPDATEDELAY))))
         res = msas.apiServerMain()
         myprint(1, 'mySosh API Server exited with code %d' % res)
         sys.exit(res)
@@ -220,8 +220,10 @@ def main():
 
     t = os.path.getmtime(mg.dataCachePath)
     dt = datetime.fromtimestamp(t).strftime('%Y/%m/%d %H:%M:%S')
-    myprint(1, 'Cache file updated. Last modification time: %s' % dt)
+    myprint(1, 'Cache file updated. Last modification time: %s (%d)' % (dt,t))
 
+    mg.prevModTime = t
+    
     # Display information
     mg.contractsInfo = msc.loadDataFromCache(mg.dataCachePath)
     info = msc.getContractsInfo(mg.contractsInfo, contract)
