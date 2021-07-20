@@ -62,7 +62,7 @@ def parse_argv():
     parser.add_argument("-C", "--cache",
                         action="store_true",
                         dest="useCache",
-                        default=False,
+                        default=True,
                         help="Use local cache if available")
     parser.add_argument('-D', '--delay',
                         dest='updateDelay',
@@ -184,7 +184,7 @@ def main():
             mg.logger.info('mySoshApiServer imported (line #%d)' % get_linenumber())
 
         myprint(0, 'Running in Server mode. Update interval: %d seconds (%s)' % (config.UPDATEDELAY, time.strftime('%H:%M:%S', time.gmtime(config.UPDATEDELAY))))
-        res = msas.apiServerMain()
+        res = msas.apiServerMain()	# Never returns
         myprint(1, 'mySosh API Server exited with code %d' % res)
         sys.exit(res)
         
@@ -200,17 +200,17 @@ def main():
 
     if config.USE_CACHE:
         # Load data from local cache
-        mg.contractsInfo = msc.loadDataFromCache(mg.dataCachePath)
-        if mg.contractsInfo:
-            info = msc.getContractsInfo(mg.contractsInfo, contract)
-            if config.VERBOSE:
-                for k,v in info.items():
-                    oneContract = v
-                    print('%s%s%s' % (color.BOLD, k, color.END))
-                    print(json.dumps(oneContract, indent=4, ensure_ascii=False))
-            else:
-                print(json.dumps(info, ensure_ascii=False))
-            sys.exit(0)
+        #mg.contractsInfo = msc.loadDataFromCache(mg.dataCachePath)
+        #if mg.contractsInfo:
+        info = msc.getContractsInfo(contract)
+        if config.VERBOSE:
+            for k,v in info.items():
+                oneContract = v
+                print('%s%s%s' % (color.BOLD, k, color.END))
+                print(json.dumps(oneContract, indent=4, ensure_ascii=False))
+        else:
+            print(json.dumps(info, ensure_ascii=False))
+        sys.exit(0)
 
     # Read data from server
     res = msc.getContractsInfoFromSoshServer(mg.dataCachePath)    
@@ -225,8 +225,9 @@ def main():
     mg.prevModTime = t
     
     # Display information
-    mg.contractsInfo = msc.loadDataFromCache(mg.dataCachePath)
-    info = msc.getContractsInfo(mg.contractsInfo, contract)
+    #mg.contractsInfo = msc.loadDataFromCache(mg.dataCachePath)
+    #info = msc.getContractsInfo(mg.contractsInfo, contract)
+    info = msc.getContractsInfo(contract)
     
     if config.VERBOSE:
         print(json.dumps(info, indent=4, ensure_ascii=False))
@@ -245,7 +246,7 @@ if __name__ == "__main__":
     logging.basicConfig(filename='mySosh-ws.log', level=logging.INFO)
     mg.logger = logging.getLogger(__name__)
     mg.logger.info('Running at %s. Args: %s' % (dt_now, ' '.join(sys.argv)))
-
+    
     # Absolute pathname of directory containing this module
     mg.moduleDirPath = os.path.dirname(module_path(main))
 
@@ -254,22 +255,5 @@ if __name__ == "__main__":
     # Absolute pathname of data cache file
     mg.dataCachePath = os.path.join(mg.moduleDirPath, '.%s%s' % (username, mg.DATA_CACHE_FILE))
     
-    # Check if config module is already imported. If not, build it
-    # try:
-    #     x = globals()['config']
-    #     haveConfig = True
-    # except:
-    #     haveConfig = False
-
-    # if not haveConfig:
-    #     initConfiguration()
-
-    # # Import generated module
-    # try:
-    #     import config
-    # except:
-    #     print('config.py initialization has failed. Exiting')
-    #     sys.exit(1)
-            
     # Let's go
     main()

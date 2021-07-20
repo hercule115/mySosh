@@ -474,7 +474,7 @@ class Sosh:
         myprint(1,'Response Code:',r.status_code)
 
         if r.status_code != rqst["resp"]["code"]:
-            myprint(1,'Invalid Status Code: %d (expected %d). Reason: %s' % (r.status_code, rqst["resp"]["code"], r.reason))
+            myprint(0,'Request %s (%s). Invalid Status Code: %d (expected %d). Reason: %s.' % (name, rqst["info"], r.status_code, rqst["resp"]["code"], r.reason))
             sys.exit(1)
 
         # Optional parameter "dumpResponse"

@@ -46,7 +46,7 @@ class CallsListAPI(Resource):
         config.CALLS = True
 
     def get(self):
-        calls = msc.getContractsInfo(mg.contractsInfo, 'all')
+        calls = msc.getContractsInfo('all')
         myprint(1, json.dumps(calls, ensure_ascii=False))        
         return (calls)
 
@@ -62,7 +62,7 @@ class CallsAPI(Resource):
         config.CALLS = True
     
     def get(self, id):
-        calls = msc.getContractsInfo(mg.contractsInfo, id)
+        calls = msc.getContractsInfo(id)
         myprint(1, json.dumps(calls, ensure_ascii=False))
         return (calls)
 

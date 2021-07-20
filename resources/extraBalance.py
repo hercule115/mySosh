@@ -46,7 +46,7 @@ class ExtraBalanceListAPI(Resource):
         config.CALLS = False
 
     def get(self):
-        extra = msc.getContractsInfo(mg.contractsInfo, 'all')
+        extra = msc.getContractsInfo('all')
         myprint(1, json.dumps(extra, ensure_ascii=False))        
         return (extra)
 
@@ -62,7 +62,7 @@ class ExtraBalanceAPI(Resource):
         config.CALLS = False
     
     def get(self, id):
-        extra = msc.getContractsInfo(mg.contractsInfo, id)
+        extra = msc.getContractsInfo(id)
         myprint(1, json.dumps(extra, ensure_ascii=False))
         return (extra)
 

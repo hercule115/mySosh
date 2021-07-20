@@ -37,20 +37,6 @@ def unauthorized():
     # auth dialog
     return make_response(jsonify({'message': 'Unauthorized access'}), 403)
 
-# @auth.get_password
-# def get_password(username):
-#     myprint(2, username)
-#     if username == 'didier':
-#         return 'foobar'
-#     return None
-
-
-# @auth.error_handler
-# def unauthorized():
-#     # return 403 instead of 401 to prevent browsers from displaying the default
-#     # auth dialog
-#     return make_response(jsonify({'message': 'Unauthorized access'}), 403)
-
 class InternetListAPI(Resource):
     decorators = [auth.login_required]
 
@@ -60,7 +46,7 @@ class InternetListAPI(Resource):
         config.CALLS = False
 
     def get(self):
-        internet = msc.getContractsInfo(mg.contractsInfo, 'all')
+        internet = msc.getContractsInfo('all')
         myprint(1, json.dumps(internet, ensure_ascii=False))        
         return (internet)
 
@@ -76,7 +62,7 @@ class InternetAPI(Resource):
         config.CALLS = False
 
     def get(self, id):
-        internet = msc.getContractsInfo(mg.contractsInfo, id)
+        internet = msc.getContractsInfo(id)
         myprint(1, json.dumps(internet, ensure_ascii=False))
         return (internet)
 
