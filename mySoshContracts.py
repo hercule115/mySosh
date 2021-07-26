@@ -25,9 +25,9 @@ def getDataFromCache():
     # Check if cache file has been updated by server thread
     currModTime = os.path.getmtime(mg.dataCachePath)
     dt = datetime.fromtimestamp(currModTime).strftime('%Y/%m/%d %H:%M:%S')
-    myprint(1, '%s: Cache file last modification time: %s (%d)' % (dtNow,dt,currModTime))
+    myprint(1, '%s: Cache file last modification time: %s (prev=%d, curr=%d)' % (dtNow,dt,mg.prevModTime,currModTime))
 
-    if currModTime > mg.prevModTime:
+    if mg.prevModTime < currModTime:
         myprint(1, 'Need to reload cache data from cache file (%d/%d)' % (mg.prevModTime,currModTime))
         # Reload local cache
         rawInfo = loadDataFromCacheFile(mg.dataCachePath)
@@ -35,7 +35,7 @@ def getDataFromCache():
         # Rebuild allContracts dictionary
         mg.allContracts = buildAllContracts(rawInfo)
     else:
-        myprint(1, 'Data cache is up to date')
+        myprint(1, 'Data cache is up to date (%d/%d)' % (mg.prevModTime,currModTime))
 
     myprint(1, 'allContracts #entries: %d' % (len(mg.allContracts)))
     return mg.allContracts

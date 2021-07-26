@@ -225,8 +225,6 @@ def main():
     mg.prevModTime = t
     
     # Display information
-    #mg.contractsInfo = msc.loadDataFromCache(mg.dataCachePath)
-    #info = msc.getContractsInfo(mg.contractsInfo, contract)
     info = msc.getContractsInfo(contract)
     
     if config.VERBOSE:
