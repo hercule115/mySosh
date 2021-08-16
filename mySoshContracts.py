@@ -360,7 +360,11 @@ def getContractsInfoFromSoshServer(dataCachePath):
         sosh.logout()
 
     # Update data cache
-    res = dumpToFile(dataCachePath, info)
-    if res:
-        myprint(1, 'Failed to update local data cache')
-    return(res)
+    if not 'ErRoR' in info:
+        res = dumpToFile(dataCachePath, info)
+        if res:
+            myprint(1, 'Failed to update local data cache')
+    else:
+        myprint(1, 'Error retrieving information from Sosh server')
+        res = -1
+    return res

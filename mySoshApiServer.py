@@ -58,13 +58,14 @@ def foreverLoop(loop_on, dataCachePath, debug, updateDelay):
     while True:
         if loop_on.value == True:
             time.sleep(updateDelay)
-            myprint(0, 'Reloading cache file from server...')
+            dt_now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            myprint(0, 'Reloading cache file from server at %s...' % (dt_now))
             res = msc.getContractsInfoFromSoshServer(dataCachePath)
             if res:
                 myprint(0, 'Failed to create/update local data cache')
                 #continue
-            dt_now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-            myprint(0, 'Data collected from server at %s' % (dt_now))            
+            else:
+                myprint(0, 'Data collected from server at %s' % (dt_now))            
 
 
 def apiServerMain():

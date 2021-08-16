@@ -187,7 +187,11 @@ def main():
         res = msas.apiServerMain()	# Never returns
         myprint(1, 'mySosh API Server exited with code %d' % res)
         sys.exit(res)
-        
+
+
+    #
+    # Standalone mode
+    #
     if not args.contract:
         contract = 'all'
     else:
@@ -199,9 +203,6 @@ def main():
             contract = args.contract[0]
 
     if config.USE_CACHE:
-        # Load data from local cache
-        #mg.contractsInfo = msc.loadDataFromCache(mg.dataCachePath)
-        #if mg.contractsInfo:
         info = msc.getContractsInfo(contract)
         if config.VERBOSE:
             for k,v in info.items():
