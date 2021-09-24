@@ -148,7 +148,7 @@ def loadDataFromCacheFile(dataCachePath):
             return res
     except Exception as error: 
         myprint(0, f"Unable to open data cache file {dataCachePath}")
-        return None
+        return {} # empty dict
 
     
 ####
