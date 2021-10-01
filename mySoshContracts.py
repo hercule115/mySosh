@@ -33,22 +33,27 @@ def getDataFromCache():
         rawInfo = loadDataFromCacheFile(mg.dataCachePath)
         mg.prevModTime = currModTime
         # Rebuild allContracts dictionary
-        mg.allContracts = buildAllContracts(rawInfo)
+        mg.allContracts = buildAllContracts(rawInfo, dt)
     else:
         myprint(1, 'Data cache is up to date (%d/%d)' % (mg.prevModTime,currModTime))
 
     myprint(1, 'allContracts #entries: %d' % (len(mg.allContracts)))
+    #myprint(1, json.dumps(mg.allContracts, indent=4, ensure_ascii=False))
     return mg.allContracts
 
     
 ####
 # Build allContracts dictionnary with relevant information from data cache file    
-def buildAllContracts(rawInfo):
+def buildAllContracts(rawInfo, dt):
     myprint(1, 'Building AllContracts dictionary from raw data (# contracts=%d)' % (len(rawInfo)))
-
+    myprint(1, 'Data cache file modification date: %s' % (dt))
+    
     # Dict to contain all information for all contracts
     allContracts = dict()
 
+    # Add data cache file modification date
+    allContracts['DataCacheFileModDate'] = dt
+    
     for x in rawInfo:
         try:
             e = x["equipments"][0]
@@ -171,17 +176,17 @@ def getContractsInfo(phonenum):
     if config.VERBOSE:
         if contract == 'all':
             myprint(0, 'Showing all contracts')
-            return(allContracts)
+            return allContracts
         elif contract in allContracts:
             if config.DEBUG:
                 myprint(1, 'Contract %s FOUND' % contract)
-                return(allContracts[contract])
+                return allContracts[contract]
             else:
                 if config.DEBUG:
                     myprint(1, 'Contract %s NOT FOUND' % contract)
-                return()
+                return
         else:
-            return()
+            return
 
     # Compact mode
 
@@ -190,6 +195,11 @@ def getContractsInfo(phonenum):
 
     if contract == 'all':
         for oneContract in allContracts.values():
+
+            if config.MISCINFO:
+                outputDict['DataCacheFileModDate'] = allContracts['DataCacheFileModDate']
+                return outputDict
+
             if config.CALLS:
                 # Show information about voice calls
                 try:
@@ -198,9 +208,9 @@ def getContractsInfo(phonenum):
                     formatted_value = time.strftime('%H:%M:%S', time.gmtime(value))
                     unit  = calls['appels/summary/additionalCredit']['unit']
                     outputDict[oneContract['phonenum']] = {
-                        "value" : value,
+                        "value"           : value,
                         "formatted_value" : formatted_value,
-                        "unit"  : unit,
+                        "unit"            : unit,
                     }
                 except:
                     myprint(1, 'No Calls')
@@ -252,6 +262,10 @@ def getContractsInfo(phonenum):
                     "used"    : float(used),
                     "expire"  : oneContract['reinitDate']
                 }
+
+
+
+
         # Print collected information
         #print(json.dumps(outputDict, indent=4, ensure_ascii=False))
         #print(outputDict)

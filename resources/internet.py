@@ -28,7 +28,7 @@ def get_password(username):
         myprint(0, 'Invalid username %s' % username)
         return None
 
-    myprint(1, 'Username is valid')
+    myprint(2, 'Username is valid')
     return p
 
 @auth.error_handler
@@ -41,10 +41,11 @@ class InternetListAPI(Resource):
     decorators = [auth.login_required]
 
     def __init__(self):
-        config.INTERNET = True
         config.EXTRA_BALANCE = False
-        config.CALLS = False
-
+        config.CALLS         = False
+        config.MISCINFO      = False
+        config.INTERNET      = True
+        
     def get(self):
         internet = msc.getContractsInfo('all')
         myprint(1, json.dumps(internet, ensure_ascii=False))        
@@ -57,10 +58,11 @@ class InternetAPI(Resource):
     decorators = [auth.login_required]
 
     def __init__(self):
-        config.INTERNET = True
         config.EXTRA_BALANCE = False
-        config.CALLS = False
-
+        config.CALLS         = False
+        config.MISCINFO      = False
+        config.INTERNET      = True
+        
     def get(self, id):
         internet = msc.getContractsInfo(id)
         myprint(1, json.dumps(internet, ensure_ascii=False))

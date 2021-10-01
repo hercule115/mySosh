@@ -41,9 +41,10 @@ class CallsListAPI(Resource):
     decorators = [auth.login_required]
 
     def __init__(self):
-        config.INTERNET = False
+        config.INTERNET      = False
         config.EXTRA_BALANCE = False
-        config.CALLS = True
+        config.MISCINFO      = False
+        config.CALLS         = True
 
     def get(self):
         calls = msc.getContractsInfo('all')
@@ -57,9 +58,10 @@ class CallsAPI(Resource):
     decorators = [auth.login_required]
 
     def __init__(self):
-        config.INTERNET = False
+        config.INTERNET      = False
         config.EXTRA_BALANCE = False
-        config.CALLS = True
+        config.MISCINFO      = False
+        config.CALLS         = True
     
     def get(self, id):
         calls = msc.getContractsInfo(id)

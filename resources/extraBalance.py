@@ -41,10 +41,11 @@ class ExtraBalanceListAPI(Resource):
     decorators = [auth.login_required]
 
     def __init__(self):
-        config.INTERNET = False
+        config.INTERNET      = False
+        config.CALLS         = False
+        config.MISCINFO      = False
         config.EXTRA_BALANCE = True
-        config.CALLS = False
-
+        
     def get(self):
         extra = msc.getContractsInfo('all')
         myprint(1, json.dumps(extra, ensure_ascii=False))        
@@ -57,10 +58,11 @@ class ExtraBalanceAPI(Resource):
     decorators = [auth.login_required]
 
     def __init__(self):
-        config.INTERNET = False
+        config.INTERNET      = False
+        config.CALLS         = False
+        config.MISCINFO      = False
         config.EXTRA_BALANCE = True
-        config.CALLS = False
-    
+        
     def get(self, id):
         extra = msc.getContractsInfo(id)
         myprint(1, json.dumps(extra, ensure_ascii=False))
