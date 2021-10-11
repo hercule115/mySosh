@@ -239,8 +239,8 @@ def getContractsInfo(phonenum):
                     myprint(1, 'No Extra Balance')
                     outputDict[oneContract['phonenum']] = {
                         "extra" : 0,
-                        "unit"  : "?",
-                        "date"  : "?"
+                        "unit"  : "",
+                        "date"  : ""
                     }
                 continue
 
@@ -263,12 +263,8 @@ def getContractsInfo(phonenum):
                     "expire"  : oneContract['reinitDate']
                 }
 
-
-
-
         # Print collected information
         #print(json.dumps(outputDict, indent=4, ensure_ascii=False))
-        #print(outputDict)
         return (outputDict)
 
     # Single contract requested
@@ -316,8 +312,8 @@ def getContractsInfo(phonenum):
             myprint(1, 'No Extra Balance')
             outputDict = {
                 "extra" : 0,
-                "unit"  : "?",
-                "date"  : "?"
+                "unit"  : "",
+                "date"  : ""
             }
         #print(json.dumps(outputDict, ensure_ascii=False))
         return(outputDict)
