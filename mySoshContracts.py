@@ -12,18 +12,23 @@ import config
 import mySoshClient
 from common.utils import myprint, dumpToFile, masked, color
 
-#allContracts = dict()
-#print('allContracts initialized')
-
 ####
 # Reload data from cache file if needed.
 # Parse data to build the allContracts dict. 
 def getDataFromCache():
     # What time is it ?
     dtNow = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
-    
+
+    if not os.path.isfile(mg.dataCachePath):
+        myprint(0, 'Cache file does not exist (%s)' % mg.dataCachePath)
+        res = getContractsInfoFromSoshServer(mg.dataCachePath)
+        if res:
+            myprint(0, 'Failed to create local data cache.')
+            return {}
+        
     # Check if cache file has been updated by server thread
     currModTime = os.path.getmtime(mg.dataCachePath)
+        
     dt = datetime.fromtimestamp(currModTime).strftime('%Y/%m/%d %H:%M:%S')
     myprint(1, '%s: Cache file last modification time: %s (%d)' % (dtNow,dt,currModTime))
 
@@ -148,7 +153,7 @@ def loadDataFromCacheFile(dataCachePath):
             return res
     except Exception as error: 
         myprint(0, f"Unable to open data cache file {dataCachePath}")
-        return None
+        return {}
 
     
 ####

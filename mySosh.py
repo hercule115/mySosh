@@ -200,8 +200,6 @@ def main():
 
     if config.USE_CACHE:
         # Load data from local cache
-        #mg.contractsInfo = msc.loadDataFromCache(mg.dataCachePath)
-        #if mg.contractsInfo:
         info = msc.getContractsInfo(contract)
         if config.VERBOSE:
             for k,v in info.items():
@@ -225,9 +223,7 @@ def main():
     mg.prevModTime = t
     
     # Display information
-    #mg.contractsInfo = msc.loadDataFromCache(mg.dataCachePath)
-    #info = msc.getContractsInfo(mg.contractsInfo, contract)
-    info = msc.getContractsInfo(contract)
+    info = msc.getContractsInfo(mg.contractsInfo)
     
     if config.VERBOSE:
         print(json.dumps(info, indent=4, ensure_ascii=False))
