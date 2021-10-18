@@ -158,11 +158,7 @@ def loadDataFromCacheFile(dataCachePath):
             return res
     except Exception as error: 
         myprint(0, f"Unable to open data cache file {dataCachePath}")
-<<<<<<< HEAD
-        return {}
-=======
         return {} # empty dict
->>>>>>> 758ad428e15ebeecadb040e80ab098247f834e14
 
     
 ####
@@ -181,21 +177,17 @@ def getContractsInfo(phonenum):
     myprint(1, 'Looking for contract: %s%s%s' % (color.BOLD, contract, color.END))
 
     allContracts = getDataFromCache()
-    
+
     if config.VERBOSE:
         if contract == 'all':
             myprint(0, 'Showing all contracts')
             return allContracts
         elif contract in allContracts:
-            if config.DEBUG:
-                myprint(1, 'Contract %s FOUND' % contract)
-                return allContracts[contract]
-            else:
-                if config.DEBUG:
-                    myprint(1, 'Contract %s NOT FOUND' % contract)
-                return
+            myprint(1, 'Contract %s FOUND' % contract)
+            return allContracts[contract]
         else:
-            return
+            myprint(1, 'Contract %s NOT FOUND' % contract)
+            return {}
 
     # Compact mode
 
