@@ -333,6 +333,9 @@ class Sosh:
 
         # Execute "initialPage" request
         respText = self._executeRequest('initialPage')
+        if 'ErRoR' in respText:
+            myprint(1, "Error when executing 'initialPage' request")
+            return respText
 
         # Get idzone.js script url from response text
         idzoneScript = self._getScriptUrl(respText, 'idzone.js')
@@ -461,21 +464,42 @@ class Sosh:
         myprint(1,'Request type: %s, Request URL: %s' % (rqstType, rqstURL))
         myprint(2,'Request Headers:', json.dumps(hdrs.headers, indent=2))
 
+        errFlag = False
+        
         if rqstType == 'GET':
-            r = self._session.get(rqstURL, headers=hdrs.headers)
+            try:
+                r = self._session.get(rqstURL, headers=hdrs.headers)
+            except requests.exceptions.RequestException as e:
+                errFlag = True
+
         elif rqstType == 'POST':
             rqstPayload  = rqst["rqst"]["payload"]
             myprint(1,"payload=%s" % rqstPayload)
-            r = self._session.post(rqstURL, headers=hdrs.headers, data=rqstPayload)
+            try:
+                r = self._session.post(rqstURL, headers=hdrs.headers, data=rqstPayload)
+            except requests.exceptions.RequestException as e:
+                errFlag = True
+
         else:	# OPTIONS
             assert(rqstType == 'OPTIONS')
-            r = self._session.options(rqstURL, headers=hdrs.headers)
+            try:
+                r = self._session.options(rqstURL, headers=hdrs.headers)
+            except requests.exceptions.RequestException as e:
+                errFlag = True
+
+        if errFlag:
+            errorMsg = 'ErRoR while retrieving information: %s' % (e) # Dont't change the cast for ErRoR  !!!!
+            myprint(0, errorMsg)
+            return errorMsg
 
         myprint(1,'Response Code:',r.status_code)
 
         if r.status_code != rqst["resp"]["code"]:
             myprint(0,'Request %s (%s). Invalid Status Code: %d (expected %d). Reason: %s.' % (name, rqst["info"], r.status_code, rqst["resp"]["code"], r.reason))
-            sys.exit(1)
+            if rqst["returnText"]:
+                return ''
+            else:
+                return
 
         # Optional parameter "dumpResponse"
         try:

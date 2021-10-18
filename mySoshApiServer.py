@@ -19,6 +19,7 @@ import mySoshContracts as msc
 from resources.internet import InternetAPI, InternetListAPI
 from resources.extraBalance import ExtraBalanceAPI, ExtraBalanceListAPI
 from resources.calls import CallsAPI, CallsListAPI
+from resources.misc import MiscInfoAPI
 
 DATACACHE_AGING_IN_MINUTES = 20
 
@@ -26,15 +27,18 @@ apiResources = {
     "internet" : [
         (InternetListAPI, '/mysosh/api/v1.0/internet',             'internets'),
         (InternetAPI,     '/mysosh/api/v1.0/internet/<string:id>', 'internet')
-        ],
+    ],
     "extrabalance" : [
         (ExtraBalanceListAPI, '/mysosh/api/v1.0/extrabalance',             'extrabalances'),
         (ExtraBalanceAPI,     '/mysosh/api/v1.0/extrabalance/<string:id>', 'extrabalance')
-        ],
+    ],
     "calls" : [
         (CallsListAPI, '/mysosh/api/v1.0/calls',             'calls'),
         (CallsAPI,     '/mysosh/api/v1.0/calls/<string:id>', 'call')
-        ],
+    ],
+    "misc" : [
+        (MiscInfoAPI,	'/mysosh/api/v1.0/miscinfo', 'miscinfo'),
+    ],
 }
 
 def foreverLoop(loop_on, dataCachePath, debug, updateDelay):
@@ -58,13 +62,14 @@ def foreverLoop(loop_on, dataCachePath, debug, updateDelay):
     while True:
         if loop_on.value == True:
             time.sleep(updateDelay)
-            myprint(0, 'Reloading cache file from server...')
+            dt_now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            myprint(0, 'Reloading cache file from server at %s...' % (dt_now))
             res = msc.getContractsInfoFromSoshServer(dataCachePath)
             if res:
                 myprint(0, 'Failed to create/update local data cache')
                 #continue
-            dt_now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-            myprint(0, 'Data collected from server at %s' % (dt_now))            
+            else:
+                myprint(0, 'Data collected from server at %s' % (dt_now))            
 
 
 def apiServerMain():
