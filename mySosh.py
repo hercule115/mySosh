@@ -62,7 +62,7 @@ def parse_argv():
     parser.add_argument("-C", "--cache",
                         action="store_true",
                         dest="useCache",
-                        default=True,
+                        default=False,
                         help="Use local cache if available")
     parser.add_argument('-D', '--delay',
                         dest='updateDelay',
@@ -83,6 +83,9 @@ def parse_argv():
     parser.add_argument("-i", "--internet",
                         action="store_true", dest="internet", default=True,
                         help="provide information about Internet usage")
+    parser.add_argument("-m", "--misc",
+                        action="store_true", dest="miscinfo", default=False,
+                        help="provide miscellaneous information")
 
     # Credentials arguments    
     parser.add_argument('-u', '--user',
@@ -144,6 +147,7 @@ def main():
     config.INTERNET  = args.internet
     config.CALLS     = args.calls
     config.EXTRA_BALANCE = args.extraBalance
+    config.MISCINFO  = args.miscinfo
     config.DEBUG     = args.debug
     
     if config.DEBUG:
@@ -154,7 +158,8 @@ def main():
                 'config.USE_CACHE =', config.USE_CACHE,
                 'config.INTERNET =', config.INTERNET,
                 'config.CALLS =', config.CALLS,
-                'config.EXTRA_BALANCE =', config.EXTRA_BALANCE)
+                'config.EXTRA_BALANCE =', config.EXTRA_BALANCE,
+                'config.MISCINFO =', config.MISCINFO)
         
     if args.logFile == None:
         #print('Using stdout')

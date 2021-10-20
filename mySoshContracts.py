@@ -32,7 +32,10 @@ def getDataFromCache():
     dt = datetime.fromtimestamp(currModTime).strftime('%Y/%m/%d %H:%M:%S')
     myprint(1, '%s: Cache file last modification time: %s (prev=%d, curr=%d)' % (dtNow,dt,mg.prevModTime,currModTime))
 
-    if mg.prevModTime < currModTime:
+    # Update Misc Information global...
+    mg.allContractsMiscInfo = buildAllContractsMiscInfo(dt)
+        
+    if mg.prevModTime <= currModTime:
         myprint(1, 'Need to reload cache data from cache file (%d/%d)' % (mg.prevModTime,currModTime))
         # Reload local cache
         rawInfo = loadDataFromCacheFile(mg.dataCachePath)
@@ -48,6 +51,16 @@ def getDataFromCache():
 
     
 ####
+def buildAllContractsMiscInfo(dt):
+    # Dict to contain miscellaneous information
+    allContractsMiscInfo = dict()
+    
+    # Add data cache file modification date
+    allContractsMiscInfo['DataCacheFileModDate'] = dt
+
+    return allContractsMiscInfo
+
+
 # Build allContracts dictionnary with relevant information from data cache file    
 def buildAllContracts(rawInfo, dt):
     myprint(1, 'Building AllContracts dictionary from raw data (# contracts=%d)' % (len(rawInfo)))
@@ -55,9 +68,6 @@ def buildAllContracts(rawInfo, dt):
     
     # Dict to contain all information for all contracts
     allContracts = dict()
-
-    # Add data cache file modification date
-    allContracts['DataCacheFileModDate'] = dt
     
     for x in rawInfo:
         try:
@@ -144,7 +154,7 @@ def buildAllContracts(rawInfo, dt):
             
         # Add this contract to global allContracts dict
         allContracts[phonenum] = oneContract
-    
+
     return allContracts
 
 
@@ -194,12 +204,17 @@ def getContractsInfo(phonenum):
     outputDict = dict()
     myprint(1, 'Generating outputDict for "contract" %s' % (contract))
 
+    if config.MISCINFO:
+        outputDict['DataCacheFileModDate'] = mg.allContractsMiscInfo['DataCacheFileModDate']
+        return outputDict
+
     if contract == 'all':
+
+        #myprint(2, json.dumps(allContracts, indent=4, ensure_ascii=False))
+        
         for oneContract in allContracts.values():
 
-            if config.MISCINFO:
-                outputDict['DataCacheFileModDate'] = allContracts['DataCacheFileModDate']
-                return outputDict
+            myprint(2, json.dumps(oneContract, indent=4, ensure_ascii=False))
 
             if config.CALLS:
                 # Show information about voice calls
@@ -247,8 +262,8 @@ def getContractsInfo(phonenum):
 
             if config.INTERNET:
                 # Show Internet Mobile information only
+                myprint(2, json.dumps(oneContract, indent=4, ensure_ascii=False))
                 internetMobileFamily = oneContract['families']['internetMobile']
-
                 remainAsNum = float(internetMobileFamily['summary/mainText'].split(' ')[0].replace(',', '.'))
                 unit = internetMobileFamily['summary/mainText'].split(' ')[1]
                 toAsNum = int(internetMobileFamily['gaugeInfo/to'].split(' ')[0])
