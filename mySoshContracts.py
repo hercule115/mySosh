@@ -16,6 +16,7 @@ from common.utils import myprint, dumpToFile, masked, color
 # Reload data from cache file if needed.
 # Parse data to build the allContracts dict. 
 def getDataFromCache():
+
     # What time is it ?
     dtNow = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
 
@@ -52,6 +53,7 @@ def getDataFromCache():
     
 ####
 def buildAllContractsMiscInfo(dt):
+
     # Dict to contain miscellaneous information
     allContractsMiscInfo = dict()
     
@@ -63,6 +65,7 @@ def buildAllContractsMiscInfo(dt):
 
 # Build allContracts dictionnary with relevant information from data cache file    
 def buildAllContracts(rawInfo, dt):
+
     myprint(1, 'Building AllContracts dictionary from raw data (# contracts=%d)' % (len(rawInfo)))
     myprint(1, 'Data cache file modification date: %s' % (dt))
     
@@ -161,6 +164,7 @@ def buildAllContracts(rawInfo, dt):
 ###
 # Load raw data from cache file
 def loadDataFromCacheFile(dataCachePath):
+
     try:
         with open(dataCachePath, 'r') as infile:
             data = infile.read()
@@ -172,6 +176,75 @@ def loadDataFromCacheFile(dataCachePath):
 
     
 ####
+def getSingleContractInfo(oneContract):
+
+    phnum = oneContract['phonenum']
+
+    myprint(1, 'Getting information for contract: %s%s%s' % (color.BOLD, phnum, color.END))
+
+    if config.CALLS:
+        # Show information about voice calls
+        try:
+            calls = oneContract['families']['appels']
+            value = calls['appels/summary/additionalCredit']['value']
+            formatted_value = time.strftime('%H:%M:%S', time.gmtime(value))                
+            unit  = calls['appels/summary/additionalCredit']['unit']
+            outputDict = {
+                "value" : value,
+                "formatted_value" : formatted_value,                    
+                "unit"  : unit,
+            }
+        except:
+            myprint(1, 'No Calls')
+            outputDict = {
+                "value" : 0,
+                "formatted_value"  : "?",
+                "unit"  : "?",
+            }
+        #print(json.dumps(outputDict, ensure_ascii=False))
+        dtNow = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        myprint(1, '%s: voice calls returns %d' % (dtNow,outputDict["value"]))
+        return outputDict
+
+    if config.EXTRA_BALANCE:
+        # Show information for extra balance
+        try:
+            extraBalance = oneContract['families']['horsForfait']
+            extra = float(extraBalance['summary/mainText'].split(' ')[0].replace(',', '.'))
+            unit  = extraBalance['summary/mainText'].split(' ')[1]        
+            outputDict = {                
+                "extra" : extra,
+                "unit"  : unit,
+                "date"  : extraBalance['date']
+            }
+        except:
+            myprint(1, 'No Extra Balance')
+            outputDict = {
+                "extra" : 0,
+                "unit"  : "",
+                "date"  : ""
+            }
+        return outputDict
+
+    if config.INTERNET:        
+        internetMobileFamily = oneContract['families']['internetMobile']
+        remainAsNum = float(internetMobileFamily['summary/mainText'].split(' ')[0].replace(',', '.'))
+        unit        = internetMobileFamily['summary/mainText'].split(' ')[1]        
+        toAsNum     = int(internetMobileFamily['gaugeInfo/to'].split(' ')[0])
+        percent     = internetMobileFamily['gaugeInfo/percent']
+        used        = "{:.2f}".format(toAsNum - remainAsNum)
+
+        outputDict = {
+            "remain"  : remainAsNum,
+            "to"      : toAsNum,
+            "unit"    : unit,
+            "percent" : percent,
+            "used"    : float(used),
+            "expire"  : oneContract['reinitDate']
+        }
+        return outputDict
+
+    
 def getContractsInfo(phonenum):
     
     if phonenum == 'all':
@@ -209,153 +282,26 @@ def getContractsInfo(phonenum):
         return outputDict
 
     if contract == 'all':
-
-        #myprint(2, json.dumps(allContracts, indent=4, ensure_ascii=False))
-        
         for oneContract in allContracts.values():
-
-            myprint(2, json.dumps(oneContract, indent=4, ensure_ascii=False))
-
-            if config.CALLS:
-                # Show information about voice calls
-                try:
-                    calls = oneContract['families']['appels']
-                    value = calls['appels/summary/additionalCredit']['value'] # In seconds
-                    formatted_value = time.strftime('%H:%M:%S', time.gmtime(value))
-                    unit  = calls['appels/summary/additionalCredit']['unit']
-                    outputDict[oneContract['phonenum']] = {
-                        "value"           : value,
-                        "formatted_value" : formatted_value,
-                        "unit"            : unit,
-                    }
-                except:
-                    myprint(1, 'No Calls')
-                    outputDict[oneContract['phonenum']] = {
-                        "value" : 0,
-                        "formatted_value"  : "?",
-                        "unit"  : "?",
-                    }
-                continue
-
-            if config.EXTRA_BALANCE:
-                # Show information for extra balance
-                try:
-                    extraBalance = oneContract['families']['horsForfait']
-                    extra = float(extraBalance['summary/mainText'].split(' ')[0].replace(',', '.'))
-                    unit  = extraBalance['summary/mainText'].split(' ')[1]        
-
-                    outputDict[oneContract['phonenum']] = {
-                        "extra" : extra,
-                        "unit"  : unit,
-                        "date"  : extraBalance['date']
-                    }
-                    #print(json.dumps(outputDict, indent=4, ensure_ascii=False))
-                    #print(outputDict)
-                except:
-                    myprint(1, 'No Extra Balance')
-                    outputDict[oneContract['phonenum']] = {
-                        "extra" : 0,
-                        "unit"  : "",
-                        "date"  : ""
-                    }
-                continue
-
-            if config.INTERNET:
-                # Show Internet Mobile information only
-                myprint(2, json.dumps(oneContract, indent=4, ensure_ascii=False))
-                internetMobileFamily = oneContract['families']['internetMobile']
-                remainAsNum = float(internetMobileFamily['summary/mainText'].split(' ')[0].replace(',', '.'))
-                unit = internetMobileFamily['summary/mainText'].split(' ')[1]
-                toAsNum = int(internetMobileFamily['gaugeInfo/to'].split(' ')[0])
-                percent = internetMobileFamily['gaugeInfo/percent']
-                used = "{:.2f}".format(toAsNum - remainAsNum)
-                
-                outputDict[oneContract['phonenum']] = {
-                    "remain"  : remainAsNum,
-                    "to"      : toAsNum,
-                    "unit"    : unit,
-                    "percent" : percent,
-                    "used"    : float(used),
-                    "expire"  : oneContract['reinitDate']
-                }
+            #myprint(2, json.dumps(oneContract, indent=4, ensure_ascii=False))
+            outputDict[oneContract['phonenum']] = getSingleContractInfo(oneContract)
+            continue
 
         # Print collected information
         #print(json.dumps(outputDict, indent=4, ensure_ascii=False))
-        return (outputDict)
+        return outputDict
 
     # Single contract requested
     if not contract in allContracts:
-        return ()
+        return {}
         
-    oneContract = allContracts[contract]
-
-    if config.CALLS:
-        # Show information about voice calls
-        try:
-            calls = oneContract['families']['appels']
-            value = calls['appels/summary/additionalCredit']['value']
-            formatted_value = time.strftime('%H:%M:%S', time.gmtime(value))                
-            unit  = calls['appels/summary/additionalCredit']['unit']
-            outputDict = {
-                "value" : value,
-                "formatted_value" : formatted_value,                    
-                "unit"  : unit,
-            }
-        except:
-            myprint(1, 'No Calls')
-            outputDict = {
-                "value" : 0,
-                "formatted_value"  : "?",
-                "unit"  : "?",
-            }
-        #print(json.dumps(outputDict, ensure_ascii=False))
-        dtNow = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
-        myprint(1, '%s: voice calls returns %d' % (dtNow,outputDict["value"]))
-        return(outputDict)
-
-    if config.EXTRA_BALANCE:
-        # Show information for extra balance
-        try:
-            extraBalance = oneContract['families']['horsForfait']
-            extra = float(extraBalance['summary/mainText'].split(' ')[0].replace(',', '.'))
-            unit  = extraBalance['summary/mainText'].split(' ')[1]        
-            outputDict = {                
-                "extra" : extra,
-                "unit"  : unit,
-                "date"  : extraBalance['date']
-            }
-        except:
-            myprint(1, 'No Extra Balance')
-            outputDict = {
-                "extra" : 0,
-                "unit"  : "",
-                "date"  : ""
-            }
-        #print(json.dumps(outputDict, ensure_ascii=False))
-        return(outputDict)
-
-    if config.INTERNET:        
-        internetMobileFamily = oneContract['families']['internetMobile']
-        remainAsNum = float(internetMobileFamily['summary/mainText'].split(' ')[0].replace(',', '.'))
-        unit        = internetMobileFamily['summary/mainText'].split(' ')[1]        
-        toAsNum     = int(internetMobileFamily['gaugeInfo/to'].split(' ')[0])
-        percent     = internetMobileFamily['gaugeInfo/percent']
-        used        = "{:.2f}".format(toAsNum - remainAsNum)
-
-        outputDict = {
-            "remain"  : remainAsNum,
-            "to"      : toAsNum,
-            "unit"    : unit,
-            "percent" : percent,
-            "used"    : float(used),
-            "expire"  : oneContract['reinitDate']
-        }
-        #print(json.dumps(outputDict, ensure_ascii=False))
-        return(outputDict)
+    outputDict = getSingleContractInfo(allContracts[contract])
+    return outputDict
 
     
 # Get contract(s) info from SOSH Server and update the local cache
 def getContractsInfoFromSoshServer(dataCachePath):
+
     myprint(2, 'Connecting to SOSH Server')
     
     username, password = authinfo.decodeKey(config.SOSH_AUTH.encode('utf-8'))
